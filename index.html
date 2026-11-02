@@ -12,13 +12,19 @@
 
 .photo-viewer{position:fixed;inset:0;z-index:9999;background:rgba(5,12,20,.92);display:none;align-items:center;justify-content:center;padding:18px}
 .photo-viewer.show{display:flex}
-.photo-viewer img{max-width:min(88vw,1200px);max-height:84vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px #0008}
+.pv-stage{position:relative;display:flex;align-items:center;justify-content:center;max-width:88vw;max-height:84vh;margin:auto}
+.photo-viewer .pv-stage img{display:block;max-width:88vw;max-height:84vh;width:auto;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px #0008}
 .photo-viewer button{position:absolute;background:rgba(255,255,255,.16);color:white;border:1px solid #ffffff55;border-radius:50%;width:44px;height:44px;padding:0;display:grid;place-items:center;font-size:25px;line-height:1}
 .photo-viewer .pv-close{top:18px;right:18px;font-size:27px}
 .photo-viewer .pv-prev{left:16px;top:50%;transform:translateY(-50%)}
 .photo-viewer .pv-next{right:16px;top:50%;transform:translateY(-50%)}
 .photo-viewer .pv-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;background:#0008;padding:5px 12px;border-radius:20px;font-size:13px}
 .photo-viewer .pv-prev[hidden],.photo-viewer .pv-next[hidden],.photo-viewer .pv-count[hidden]{display:none}
+.photo-viewer .pv-caption{position:absolute;left:0;right:0;bottom:0;transform:none;width:100%;max-height:45%;overflow:auto;padding:28px 18px 14px;font-size:clamp(15px,2.3vw,22px);line-height:1.35;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.72));color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.75);border-radius:0 0 8px 8px}
+.photo-viewer .pv-caption.dark{color:#000;text-shadow:0 1px 3px rgba(255,255,255,.8);background:linear-gradient(to bottom,transparent,rgba(255,255,255,.78))}
+.photo-viewer .pv-caption:empty{display:none}
+@media(max-width:600px){.photo-viewer .pv-caption{padding:22px 12px 12px;font-size:16px}}
+
 #preview{display:flex;flex-wrap:wrap;gap:6px}
 #preview .thumb{cursor:zoom-in;margin:0;outline:0}
 #preview .thumb:focus{outline:2px solid #3b82f6;outline-offset:2px}
@@ -29,7 +35,7 @@
 <section><section class="panel"><div class="head"><div><h2 id="formtitle">Un souvenir de voyage</h2><div class="sub">Lieu, date, notes et photos.</div></div></div><form id="form" class="form"><label>Nom du lieu<input id="name" required placeholder="Ex. Chichén Itzá"></label><div class="row"><label>Pays<input id="country" placeholder="Mexique"></label><label>Date<input id="date" type="date"></label></div><label>Notes<textarea id="notes" placeholder="Ce que vous souhaitez garder en mémoire…"></textarea></label><label>Photos (maximum 5)<input id="files" type="file" accept="image/*" multiple></label><div id="preview"></div><div class="hint">Les photos et les lieux restent sur cet appareil. Les photos avec GPS peuvent positionner l’épingle et préremplir la date. Sinon, placez l’épingle manuellement.</div><div class="actions"><button>Enregistrer</button><button type="button" id="clear" class="secondary">Effacer</button></div><div id="editrow" class="actions" hidden><button type="button" id="delete" class="danger">Supprimer ce lieu</button></div></form></section>
 <section class="panel"><div class="head"><div><h2>Ma vie de voyage</h2><div class="sub">Chronologie de vos souvenirs</div></div></div><div id="timeline" class="timeline"></div></section>
 <section class="panel"><div class="head"><div><h2>Le générique</h2><div class="sub">Terre réelle, rotation fluide, approche de l’Europe.</div></div></div><div class="intro"><canvas id="earth"></canvas><div class="introcopy"><h1>Mon Atlas</h1><p>Tous mes voyages, une vie de découvertes</p></div><button id="replay">Rejouer</button></div><div class="note hint">La texture terrestre est chargée depuis la NASA et l’animation 3D fonctionne avec une connexion internet. Ceci est une prévisualisation, pas encore le fichier vidéo final.</div></section></section></main>
-<div id="photoViewer" class="photo-viewer" role="dialog" aria-modal="true" aria-label="Visionneuse de photos"><button type="button" class="pv-close" aria-label="Fermer">×</button><button type="button" class="pv-prev" aria-label="Photo précédente">‹</button><img id="pvImage" alt="Photo du souvenir"><button type="button" class="pv-next" aria-label="Photo suivante">›</button><div id="pvCount" class="pv-count"></div></div><div class="foot">Le partage par lien public et la synchronisation entre appareils nécessitent un hébergement et un service en ligne : ils ne sont pas présentés comme fonctionnels dans ce prototype.</div>
+<div id="photoViewer" class="photo-viewer" role="dialog" aria-modal="true" aria-label="Visionneuse de photos"><button type="button" class="pv-close" aria-label="Fermer">×</button><button type="button" class="pv-prev" aria-label="Photo précédente">‹</button><div class="pv-stage"><img id="pvImage" alt="Photo du souvenir"><div id="pvCaption" class="pv-caption"></div></div><button type="button" class="pv-next" aria-label="Photo suivante">›</button><div id="pvCount" class="pv-count"></div></div><div class="foot">Le partage par lien public et la synchronisation entre appareils nécessitent un hébergement et un service en ligne : ils ne sont pas présentés comme fonctionnels dans ce prototype.</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 <script>
 (()=>{const $=x=>document.getElementById(x),key='monAtlasPrototype_v1';let data=[],edit=null,coords=null,photos=[],draftPin=null;try{data=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
@@ -99,19 +105,33 @@ $('files').onchange=async e=>{
 };
 
 const viewer=$('photoViewer'),pvImage=$('pvImage'),pvCount=$('pvCount'),pvPrev=viewer.querySelector('.pv-prev'),pvNext=viewer.querySelector('.pv-next'),pvClose=viewer.querySelector('.pv-close');
-let viewerPhotos=[],viewerIndex=0,viewerTouchX=null;
+let viewerPhotos=[],viewerIndex=0,viewerTouchX=null,viewerNote="";const pvCaption=$('pvCaption');
+function chooseCaptionColor(img){
+ try{
+  const canvas=document.createElement('canvas'),w=48,h=24;canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  // Sample the lower part of the photo where the caption will be displayed.
+  ctx.drawImage(img,0,Math.max(0,img.naturalHeight-h*4),img.naturalWidth,Math.min(img.naturalHeight,h*4),0,0,w,h);
+  const pixels=ctx.getImageData(0,0,w,h).data;let sum=0,n=0;
+  for(let i=0;i<pixels.length;i+=4){sum+=(.2126*pixels[i]+.7152*pixels[i+1]+.0722*pixels[i+2])/255;n++;}
+  return sum/n>.52?'dark':'light';
+ }catch(e){return 'light'}
+}
 function showViewerPhoto(){
  if(!viewerPhotos.length)return;
+ pvImage.onload=()=>{pvCaption.classList.toggle('dark',chooseCaptionColor(pvImage)==='dark');};
  pvImage.src=viewerPhotos[viewerIndex];
  pvCount.textContent=(viewerIndex+1)+' / '+viewerPhotos.length;
  pvPrev.hidden=viewerPhotos.length<2;pvNext.hidden=viewerPhotos.length<2;
+ pvCaption.textContent=viewerNote;
 }
 function openViewer(index){
  viewerPhotos=photos.slice();if(!viewerPhotos.length)return;
+ viewerNote=$('notes').value.trim();
  viewerIndex=Math.max(0,Math.min(index,viewerPhotos.length-1));
  showViewerPhoto();viewer.classList.add('show');document.body.style.overflow='hidden';
 }
-function closeViewer(){viewer.classList.remove('show');document.body.style.overflow='';pvImage.src='';}
+function closeViewer(){viewer.classList.remove('show');document.body.style.overflow='';pvImage.src='';pvCaption.textContent='';}
 function moveViewer(step){if(viewerPhotos.length<2)return;viewerIndex=(viewerIndex+step+viewerPhotos.length)%viewerPhotos.length;showViewerPhoto();}
 $('preview').addEventListener('click',e=>{const img=e.target.closest('img.thumb');if(!img)return;const imgs=Array.from($('preview').querySelectorAll('img.thumb'));openViewer(imgs.indexOf(img));});
 $('preview').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('img.thumb')){e.preventDefault();const imgs=Array.from($('preview').querySelectorAll('img.thumb'));openViewer(imgs.indexOf(e.target));}});
