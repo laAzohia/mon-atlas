@@ -9,14 +9,27 @@
 .swipe-main{min-width:0;flex:1}
 .swipe-main strong{display:block}
 .swipe-main .sub{overflow-wrap:anywhere}
-@media(max-width:800px){main{grid-template-columns:1fr;padding:10px}#map{height:370px}header{padding:13px}.brand{font-size:23px}.intro{height:260px}}
+
+.photo-viewer{position:fixed;inset:0;z-index:9999;background:rgba(5,12,20,.92);display:none;align-items:center;justify-content:center;padding:18px}
+.photo-viewer.show{display:flex}
+.photo-viewer img{max-width:min(88vw,1200px);max-height:84vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px #0008}
+.photo-viewer button{position:absolute;background:rgba(255,255,255,.16);color:white;border:1px solid #ffffff55;border-radius:50%;width:44px;height:44px;padding:0;display:grid;place-items:center;font-size:25px;line-height:1}
+.photo-viewer .pv-close{top:18px;right:18px;font-size:27px}
+.photo-viewer .pv-prev{left:16px;top:50%;transform:translateY(-50%)}
+.photo-viewer .pv-next{right:16px;top:50%;transform:translateY(-50%)}
+.photo-viewer .pv-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;background:#0008;padding:5px 12px;border-radius:20px;font-size:13px}
+.photo-viewer .pv-prev[hidden],.photo-viewer .pv-next[hidden],.photo-viewer .pv-count[hidden]{display:none}
+#preview{display:flex;flex-wrap:wrap;gap:6px}
+#preview .thumb{cursor:zoom-in;margin:0;outline:0}
+#preview .thumb:focus{outline:2px solid #3b82f6;outline-offset:2px}
+\n@media(max-width:800px){main{grid-template-columns:1fr;padding:10px}#map{height:370px}header{padding:13px}.brand{font-size:23px}.intro{height:260px}}
 </style></head><body>
 <header><div><div class="brand">Mon Atlas</div><small>Tous mes voyages, une vie de découvertes</small></div><button id="export" class="secondary">Exporter mes données</button></header>
 <main><section class="panel"><div class="head"><div><h2>Mon monde</h2><div class="sub">Touchez la carte pour placer l’épingle. Zoomez pour affiner.</div></div><button id="world" class="secondary">Vue monde</button></div><div id="map"></div><div class="head"><div><b id="count">0 souvenir</b><div class="sub">Enregistrés dans ce navigateur</div></div><button id="new">+ Nouveau lieu</button></div><div id="places" class="list"></div></section>
 <section><section class="panel"><div class="head"><div><h2 id="formtitle">Un souvenir de voyage</h2><div class="sub">Lieu, date, notes et photos.</div></div></div><form id="form" class="form"><label>Nom du lieu<input id="name" required placeholder="Ex. Chichén Itzá"></label><div class="row"><label>Pays<input id="country" placeholder="Mexique"></label><label>Date<input id="date" type="date"></label></div><label>Notes<textarea id="notes" placeholder="Ce que vous souhaitez garder en mémoire…"></textarea></label><label>Photos (maximum 5)<input id="files" type="file" accept="image/*" multiple></label><div id="preview"></div><div class="hint">Les photos et les lieux restent sur cet appareil. Les photos avec GPS peuvent positionner l’épingle et préremplir la date. Sinon, placez l’épingle manuellement.</div><div class="actions"><button>Enregistrer</button><button type="button" id="clear" class="secondary">Effacer</button></div><div id="editrow" class="actions" hidden><button type="button" id="delete" class="danger">Supprimer ce lieu</button></div></form></section>
 <section class="panel"><div class="head"><div><h2>Ma vie de voyage</h2><div class="sub">Chronologie de vos souvenirs</div></div></div><div id="timeline" class="timeline"></div></section>
 <section class="panel"><div class="head"><div><h2>Le générique</h2><div class="sub">Terre réelle, rotation fluide, approche de l’Europe.</div></div></div><div class="intro"><canvas id="earth"></canvas><div class="introcopy"><h1>Mon Atlas</h1><p>Tous mes voyages, une vie de découvertes</p></div><button id="replay">Rejouer</button></div><div class="note hint">La texture terrestre est chargée depuis la NASA et l’animation 3D fonctionne avec une connexion internet. Ceci est une prévisualisation, pas encore le fichier vidéo final.</div></section></section></main>
-<div class="foot">Le partage par lien public et la synchronisation entre appareils nécessitent un hébergement et un service en ligne : ils ne sont pas présentés comme fonctionnels dans ce prototype.</div>
+<div id="photoViewer" class="photo-viewer" role="dialog" aria-modal="true" aria-label="Visionneuse de photos"><button type="button" class="pv-close" aria-label="Fermer">×</button><button type="button" class="pv-prev" aria-label="Photo précédente">‹</button><img id="pvImage" alt="Photo du souvenir"><button type="button" class="pv-next" aria-label="Photo suivante">›</button><div id="pvCount" class="pv-count"></div></div><div class="foot">Le partage par lien public et la synchronisation entre appareils nécessitent un hébergement et un service en ligne : ils ne sont pas présentés comme fonctionnels dans ce prototype.</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 <script>
 (()=>{const $=x=>document.getElementById(x),key='monAtlasPrototype_v1';let data=[],edit=null,coords=null,photos=[],draftPin=null;try{data=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
@@ -49,7 +62,7 @@ document.querySelectorAll('[data-card]').forEach(card=>{
  });
 });$('timeline').innerHTML=data.length?data.slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')).map(p=>'<div class="timeitem"><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.date||'Date inconnue')+' · '+esc(p.country||'')+'</div>'+esc(p.notes)+'</div>').join(''):'<div class="empty">Votre chronologie apparaîtra ici.</div>'}
 function reset(){edit=null;coords=null;photos=[];if(draftPin){map.removeLayer(draftPin);draftPin=null;}$('form').reset();$('preview').innerHTML='';$('editrow').hidden=true;$('formtitle').textContent='Un souvenir de voyage'}
-function load(id){const p=data.find(x=>x.id===id);if(!p)return;if(draftPin){map.removeLayer(draftPin);draftPin=null;}edit=id;coords={lat:p.lat,lng:p.lng};photos=(p.photos||[]).slice();$('name').value=p.name;$('country').value=p.country||'';$('date').value=p.date||'';$('notes').value=p.notes||'';$('preview').innerHTML=photos.map(x=>'<img class="thumb" src="'+x+'">').join('');$('editrow').hidden=false;$('formtitle').textContent='Modifier le souvenir';map.setView([p.lat,p.lng],Math.max(5,map.getZoom()))}
+function load(id){const p=data.find(x=>x.id===id);if(!p)return;if(draftPin){map.removeLayer(draftPin);draftPin=null;}edit=id;coords={lat:p.lat,lng:p.lng};photos=(p.photos||[]).slice();$('name').value=p.name;$('country').value=p.country||'';$('date').value=p.date||'';$('notes').value=p.notes||'';$('preview').innerHTML=photos.map((x,i)=>'<img class="thumb" src="'+x+'" alt="Photo '+(i+1)+' — toucher pour agrandir" tabindex="0">').join('');$('editrow').hidden=false;$('formtitle').textContent='Modifier le souvenir';map.setView([p.lat,p.lng],Math.max(5,map.getZoom()))}
 map.on('click',e=>{
  reset();
  coords={lat:e.latlng.lat,lng:e.latlng.lng};
@@ -82,8 +95,31 @@ $('files').onchange=async e=>{
   }
  }catch(err){console.log('EXIF non disponible',err)}
  for(const f of chosen.slice(0,5-photos.length)){photos.push(await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(f)}))}
- $('preview').innerHTML=photos.map(x=>'<img class="thumb" src="'+x+'">').join('');e.target.value='';
+ $('preview').innerHTML=photos.map((x,i)=>'<img class="thumb" src="'+x+'" alt="Photo '+(i+1)+' — toucher pour agrandir" tabindex="0">').join('');e.target.value='';
 };
+
+const viewer=$('photoViewer'),pvImage=$('pvImage'),pvCount=$('pvCount'),pvPrev=viewer.querySelector('.pv-prev'),pvNext=viewer.querySelector('.pv-next'),pvClose=viewer.querySelector('.pv-close');
+let viewerPhotos=[],viewerIndex=0,viewerTouchX=null;
+function showViewerPhoto(){
+ if(!viewerPhotos.length)return;
+ pvImage.src=viewerPhotos[viewerIndex];
+ pvCount.textContent=(viewerIndex+1)+' / '+viewerPhotos.length;
+ pvPrev.hidden=viewerPhotos.length<2;pvNext.hidden=viewerPhotos.length<2;
+}
+function openViewer(index){
+ viewerPhotos=photos.slice();if(!viewerPhotos.length)return;
+ viewerIndex=Math.max(0,Math.min(index,viewerPhotos.length-1));
+ showViewerPhoto();viewer.classList.add('show');document.body.style.overflow='hidden';
+}
+function closeViewer(){viewer.classList.remove('show');document.body.style.overflow='';pvImage.src='';}
+function moveViewer(step){if(viewerPhotos.length<2)return;viewerIndex=(viewerIndex+step+viewerPhotos.length)%viewerPhotos.length;showViewerPhoto();}
+$('preview').addEventListener('click',e=>{const img=e.target.closest('img.thumb');if(!img)return;const imgs=Array.from($('preview').querySelectorAll('img.thumb'));openViewer(imgs.indexOf(img));});
+$('preview').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('img.thumb')){e.preventDefault();const imgs=Array.from($('preview').querySelectorAll('img.thumb'));openViewer(imgs.indexOf(e.target));}});
+pvPrev.onclick=()=>moveViewer(-1);pvNext.onclick=()=>moveViewer(1);pvClose.onclick=closeViewer;
+viewer.addEventListener('click',e=>{if(e.target===viewer)closeViewer();});
+viewer.addEventListener('touchstart',e=>{viewerTouchX=e.changedTouches[0].clientX;},{passive:true});
+viewer.addEventListener('touchend',e=>{if(viewerTouchX===null)return;const dx=e.changedTouches[0].clientX-viewerTouchX;viewerTouchX=null;if(Math.abs(dx)>45)moveViewer(dx<0?1:-1);},{passive:true});
+document.addEventListener('keydown',e=>{if(!viewer.classList.contains('show'))return;if(e.key==='Escape')closeViewer();if(e.key==='ArrowRight')moveViewer(1);if(e.key==='ArrowLeft')moveViewer(-1);});
 $('form').onsubmit=e=>{e.preventDefault();if(!coords){alert('Touchez la carte pour placer une épingle, puis enregistrez le souvenir.');return}const p={id:edit||('p'+Date.now()),name:$('name').value.trim(),country:$('country').value.trim(),date:$('date').value,notes:$('notes').value.trim(),lat:coords.lat,lng:coords.lng,photos};data=edit?data.map(x=>x.id===edit?p:x):[...data,p];if(save()){reset();render();map.setView([p.lat,p.lng],Math.max(4,map.getZoom()))}};
 $('clear').onclick=reset;$('new').onclick=()=>{reset();map.setView([25,5],2)};$('world').onclick=()=>map.setView([25,5],2);$('delete').onclick=()=>{if(edit&&confirm('Supprimer ce souvenir de cet appareil ?')){data=data.filter(x=>x.id!==edit);save();reset();render()}};
 $('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='mon-atlas-souvenirs.json';a.click();URL.revokeObjectURL(a.href)};render();
