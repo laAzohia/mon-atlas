@@ -22,7 +22,7 @@
 .photo-viewer .pv-prev[hidden],.photo-viewer .pv-next[hidden],.photo-viewer .pv-count[hidden]{display:none}
 .photo-viewer .pv-caption{position:absolute;left:0;right:0;bottom:0;transform:none;width:100%;max-height:45%;overflow:auto;padding:28px 18px 14px;font-size:clamp(15px,2.3vw,22px);line-height:1.35;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.72));color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.75);border-radius:0 0 8px 8px}
 .photo-viewer .pv-caption.dark{color:#000;text-shadow:0 1px 3px rgba(255,255,255,.8);background:linear-gradient(to bottom,transparent,rgba(255,255,255,.78))}
-.photo-viewer .pv-caption:empty{display:none}
+.photo-viewer .pv-caption[hidden]{display:none}
 @media(max-width:600px){.photo-viewer .pv-caption{padding:22px 12px 12px;font-size:16px}}
 
 #preview{display:flex;flex-wrap:wrap;gap:6px}
@@ -124,10 +124,12 @@ function showViewerPhoto(){
  pvCount.textContent=(viewerIndex+1)+' / '+viewerPhotos.length;
  pvPrev.hidden=viewerPhotos.length<2;pvNext.hidden=viewerPhotos.length<2;
  pvCaption.textContent=viewerNote;
+ pvCaption.hidden=!viewerNote;
 }
 function openViewer(index){
  viewerPhotos=photos.slice();if(!viewerPhotos.length)return;
- viewerNote=$('notes').value.trim();
+ const savedMemory=edit?data.find(p=>p.id===edit):null;
+ viewerNote=(savedMemory&&typeof savedMemory.notes==='string'?savedMemory.notes:$('notes').value).trim();
  viewerIndex=Math.max(0,Math.min(index,viewerPhotos.length-1));
  showViewerPhoto();viewer.classList.add('show');document.body.style.overflow='hidden';
 }
