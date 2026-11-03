@@ -50,6 +50,15 @@ function renderPhotoPreviews(){
  }));
  $('preview').querySelectorAll('[data-photo-show]').forEach(input=>input.addEventListener('change',()=>{
   const i=Number(input.dataset.photoShow);photoCaptionVisible[i]=input.checked;
+  // Auto-save only this display preference to the already-saved memory.
+  // Other form edits still require the normal Save button.
+  if(edit){
+   const saved=data.find(p=>p.id===edit);
+   if(saved){
+    saved.photoCaptionVisible=photoCaptionVisible.slice(0,photos.length);
+    save();
+   }
+  }
  }));
 }
 
