@@ -1,0 +1,286 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mon Atlas — V25</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--navy:#102a40;--ink:#172536;--muted:#667685;--paper:#f5f3ee;--line:#e0e5e8}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{border:0;border-radius:9px;padding:10px 13px;background:#173e5b;color:white;font-weight:600;cursor:pointer}button.secondary{background:#edf1f3;color:var(--ink)}button.danger{background:#fff0ed;color:#8b3022}header{padding:16px 22px;background:var(--navy);color:white;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font:26px Georgia,serif}header small{color:#cfdae1}main{max-width:1200px;margin:auto;padding:18px;display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:16px}.head{padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font:22px Georgia,serif;margin:0}.sub,.hint{font-size:12px;color:var(--muted)}#map{height:480px}.form{padding:0 18px 18px;display:grid;gap:11px}label{display:grid;gap:5px;font-size:12px;font-weight:700;color:#536473}input,textarea{width:100%;padding:10px;border:1px solid #d8e0e4;border-radius:9px;background:white;color:var(--ink)}textarea{min-height:75px}.photo-entry{display:flex;flex-direction:column;gap:8px;min-width:0;padding:0 0 12px;border-bottom:1px solid var(--line)}.photo-entry .thumb{width:100%;height:105px;object-fit:cover}.photo-caption-input{width:100%;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:13px;box-sizing:border-box}.photo-entry small{font-size:11px;color:var(--muted)}.photo-save-status{min-height:14px;color:#28734b}.caption-option{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;padding:2px 0}.caption-option input{width:18px;height:18px;margin:0;accent-color:#173e5b}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;flex-wrap:wrap;gap:8px}.list,.timeline{padding:0 18px 16px;display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}.item strong{display:block}.empty{padding:14px;color:var(--muted);font-size:13px}.thumb{width:68px;height:68px;object-fit:cover;border-radius:8px;margin-right:6px}.timeitem{border-left:2px solid #d6b36a;padding:0 0 13px 13px;margin-left:5px}.intro{height:300px;background:#020813;position:relative;overflow:hidden;display:grid;place-items:center;color:white}#earth{width:100%;height:100%;position:absolute;inset:0}.introcopy{z-index:1;text-align:center;pointer-events:none;text-shadow:0 2px 14px #000}.introcopy h1{font:48px Georgia,serif;margin:0}.introcopy p{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#d8e5ee}.intro button{position:absolute;z-index:2;right:12px;bottom:12px}.note{padding:0 18px 16px}.foot{max-width:1200px;margin:auto;padding:0 18px 24px;font-size:12px;color:var(--muted)}
+.swipe-row{position:relative;overflow:hidden;border-radius:10px;margin:0 0 8px;touch-action:pan-y}
+.swipe-delete{position:absolute;inset:0 0 0 auto;width:82px;background:#c62828;color:#fff;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:13px;font-weight:700}
+.swipe-card{position:relative;z-index:1;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;transform:translateX(0);transition:transform .18s ease;min-height:64px}
+.swipe-card.open{transform:translateX(-82px)}
+.swipe-main{min-width:0;flex:1}
+.swipe-main strong{display:block}
+.swipe-main .sub{overflow-wrap:anywhere}
+
+.photo-viewer{position:fixed;inset:0;z-index:9999;background:rgba(5,12,20,.92);display:none;align-items:center;justify-content:center;padding:18px}
+.photo-viewer.show{display:flex}
+.pv-stage{position:relative;display:flex;align-items:center;justify-content:center;max-width:88vw;max-height:84vh;margin:auto}
+.photo-viewer .pv-stage img{display:block;max-width:88vw;max-height:84vh;width:auto;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px #0008}
+.photo-viewer button{position:absolute;background:rgba(255,255,255,.16);color:white;border:1px solid #ffffff55;border-radius:50%;width:44px;height:44px;padding:0;display:grid;place-items:center;font-size:25px;line-height:1}
+.photo-viewer .pv-close{top:18px;right:18px;font-size:27px}
+.photo-viewer .pv-prev{left:16px;top:50%;transform:translateY(-50%)}
+.photo-viewer .pv-next{right:16px;top:50%;transform:translateY(-50%)}
+.photo-viewer .pv-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;background:#0008;padding:5px 12px;border-radius:20px;font-size:13px}
+.photo-viewer .pv-prev[hidden],.photo-viewer .pv-next[hidden],.photo-viewer .pv-count[hidden]{display:none}
+.photo-viewer .pv-caption{position:absolute;left:0;right:0;bottom:0;transform:none;width:100%;max-height:45%;overflow:auto;padding:28px 18px 14px;font-size:clamp(15px,2.3vw,22px);line-height:1.35;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.72));color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.75);border-radius:0 0 8px 8px}
+.photo-viewer .pv-caption.dark{color:#000;text-shadow:0 1px 3px rgba(255,255,255,.8);background:linear-gradient(to bottom,transparent,rgba(255,255,255,.78))}
+.photo-viewer .pv-caption[hidden]{display:none}
+@media(max-width:600px){.photo-viewer .pv-caption{padding:22px 12px 12px;font-size:16px}}
+
+#preview{display:flex;flex-wrap:wrap;gap:6px}
+#preview .thumb{cursor:zoom-in;margin:0;outline:0}
+#preview .thumb:focus{outline:2px solid #3b82f6;outline-offset:2px}
+\n@media(max-width:800px){main{grid-template-columns:1fr;padding:10px}#map{height:370px}header{padding:13px}.brand{font-size:23px}.intro{height:260px}}
+
+:root{--navy:#073b63;--blue:#087eb5;--sky:#69b9dc;--pale:#edf7fc;--ink:#15354c;--muted:#637b8b;--line:#dceaf1}
+body{background:#f4f9fc;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.topbar{height:66px;padding:10px max(18px,calc((100vw - 1160px)/2));background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.brandlock{display:flex;flex-direction:column;line-height:1.1}.brand{font:750 25px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-1px;color:var(--navy)}.brand b{color:#1599ca}.brandlock small{font-size:11px;color:var(--muted);margin-top:5px}
+.app-main{max-width:1160px;margin:auto;padding:20px 18px 105px;display:block}.screen{display:none}.screen.active{display:block}
+.home-hero{overflow:hidden;border-radius:24px;background:radial-gradient(ellipse at 50% 40%,#146e9d 0,#08456e 53%,#052b49 100%);padding:22px 20px 20px;color:white;text-align:center;box-shadow:0 12px 30px #0c42621a}
+.hero-title{font-size:17px;font-weight:750;letter-spacing:2.5px}.hero-title small{display:block;font-size:10px;letter-spacing:2px;color:#d7edf8;margin-top:4px}
+.earth-wrap{height:clamp(250px,42vw,430px);max-width:650px;margin:4px auto 0}.earth-wrap canvas{width:100%;height:100%;display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);max-width:740px;margin:0 auto 16px;background:#ffffffed;color:var(--navy);border-radius:16px;padding:13px 8px;box-shadow:0 8px 22px #001b2d38}
+.stats div{display:flex;flex-direction:column;align-items:center;border-right:1px solid #d9e8ef}.stats div:last-child{border:0}.stats strong{font-size:clamp(21px,3vw,29px);line-height:1.15}.stats span{font-size:12px;color:#527187}
+.explore-button{background:#fff;color:var(--navy);border-radius:28px;padding:12px 25px;min-width:220px}.explore-button span{margin-left:18px;font-size:19px}
+.home-latest{padding:20px 2px}.section-heading,.page-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px}.section-heading h2{margin:0;font-size:19px;color:var(--navy)}.section-heading p,.page-heading p{margin:3px 0 0;color:var(--muted);font-size:13px}.page-heading{padding:4px 2px 18px}.page-heading h1{margin:0;font-size:27px;color:var(--navy)}
+.text-button{background:transparent;color:var(--blue)}.recent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.recent-card{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;cursor:pointer}.recent-card img{width:100%;height:130px;object-fit:cover;display:block}.recent-card div{padding:10px 12px}.recent-card strong{display:block}.recent-card small{color:var(--muted)}
+.panel{background:white;border:1px solid var(--line);border-radius:17px;overflow:hidden;margin-bottom:15px;box-shadow:0 3px 12px #174c6710}.map-panel{padding:7px}#map{height:460px;border-radius:12px}.atlas-lower{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.trip-list{padding:0 16px 16px;display:grid;gap:10px}.trip-card{display:grid;grid-template-columns:135px 1fr;gap:13px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:8px;background:#fff;cursor:pointer}.trip-card img{width:135px;height:100px;object-fit:cover;border-radius:9px}.trip-card h3{margin:0 0 4px;font-size:16px;color:var(--navy)}.trip-card p{margin:0;color:var(--muted);font-size:12px}
+.photo-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.gallery-tile{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#e6f0f5;cursor:pointer}.gallery-tile img{width:100%;height:100%;object-fit:cover}.gallery-tile span{position:absolute;bottom:0;left:0;right:0;padding:18px 8px 7px;color:white;font-size:11px;background:linear-gradient(transparent,#001d33b8)}
+.passport-heading{display:flex;align-items:center;gap:14px;padding:10px 2px 18px}.passport-icon{width:54px;height:66px;border-radius:8px;background:linear-gradient(135deg,#0a527c,#07304f);display:grid;place-items:center;color:white;font-size:27px}.passport-heading h1{margin:0;color:var(--navy);font-size:27px}.passport-heading p{margin:3px 0;color:var(--muted);font-size:13px}
+.passport-summary{display:flex;align-items:center;justify-content:center;gap:8px;background:#eaf5fb;border-radius:14px;padding:13px;margin-bottom:18px;color:var(--navy)}.passport-summary strong{font-size:23px}.passport-summary span{font-size:12px}.passport-summary i{height:30px;width:1px;background:#bfd7e4;margin:0 12px}
+.stamp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;padding:0 4px 20px}.stamp{position:relative;aspect-ratio:.78;background:linear-gradient(150deg,#1687bd,#06456e);border:7px dotted white;outline:1px solid #d7e5ec;border-radius:5px;color:white;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 7px;text-align:center;overflow:hidden}.stamp .flag{font-size:25px}.stamp strong{font-size:clamp(11px,2vw,16px)}.stamp-art{font-size:clamp(34px,6vw,58px)}.stamp-frieze{font-size:17px;letter-spacing:2px;border-top:2px solid #ffffffaa;width:100%;padding-top:5px}.stamp .cancel{position:absolute;right:4px;top:37%;transform:rotate(-15deg);border:2px solid #ef4d4d;color:#e94747;background:#fffdf0;border-radius:50%;font-size:9px;font-weight:900;padding:5px 3px;line-height:1.05}
+.city-stamp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;padding-bottom:20px}.city-stamp{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px}.city-stamp b{display:block;color:var(--navy)}.city-stamp small{color:var(--muted)}
+.settings-card{padding:18px}.settings-card p{color:var(--muted);font-size:13px}
+.bottom-nav{position:fixed;z-index:1000;left:0;right:0;bottom:0;background:#fffffff2;backdrop-filter:blur(14px);border-top:1px solid #d9e8ef;display:flex;justify-content:center;padding:7px max(5px,calc((100vw - 760px)/2)) calc(7px + env(safe-area-inset-bottom));gap:2px}.nav-item{background:transparent;color:#587286;flex:1;max-width:115px;padding:4px 2px 2px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:1px}.nav-item span{font-size:22px;line-height:1.2}.nav-item small{font-size:10px}.nav-item.active{color:#087eb5;background:#eaf6fb}
+@media(max-width:760px){.app-main{padding:12px 12px 105px}.atlas-lower{grid-template-columns:1fr}.recent-grid{grid-template-columns:repeat(2,1fr)}.recent-card img{height:105px}.trip-card{grid-template-columns:104px 1fr}.trip-card img{width:104px;height:88px}.stamp-grid{grid-template-columns:repeat(2,1fr);gap:10px}.page-heading h1,.passport-heading h1{font-size:23px}.home-hero{padding:18px 12px}.earth-wrap{height:280px}.stats{padding:10px 4px}.stats span{font-size:10px}.stats strong{font-size:21px}.photo-gallery{grid-template-columns:repeat(2,1fr)}.bottom-nav{gap:0}.nav-item small{font-size:9px}}
+</style></head><body>
+
+<header class="topbar"><div class="brandlock"><div class="brand">Mon <b>Atlas</b></div><small>Mes voyages autour du monde</small></div><button id="export" class="secondary">Exporter</button></header>
+<main class="app-main">
+<section class="screen active" id="screen-home">
+  <div class="home-hero">
+    <div class="hero-title">MON ATLAS<small>MES VOYAGES AUTOUR DU MONDE</small></div>
+    <div class="earth-wrap"><canvas id="earth"></canvas></div>
+    <div class="stats"><div><strong id="stat-countries">0</strong><span>Pays</span></div><div><strong id="stat-places">0</strong><span>Lieux</span></div><div><strong id="stat-photos">0</strong><span>Photos</span></div><div><strong id="stat-stamps">0</strong><span>Visas</span></div></div>
+    <button class="explore-button" data-go="atlas">Explorer l’Atlas <span>→</span></button>
+  </div>
+  <section class="home-latest"><div class="section-heading"><div><h2>Dernières découvertes</h2><p>Vos souvenirs les plus récents</p></div><button class="text-button" data-go="trips">Tout voir</button></div><div id="home-recent" class="recent-grid"></div></section>
+</section>
+<section class="screen" id="screen-atlas">
+  <div class="page-heading"><div><h1>Mon Atlas</h1><p>Explorez le monde et retrouvez vos lieux.</p></div><button id="world" class="secondary">Vue monde</button></div>
+  <section class="panel map-panel"><div id="map"></div></section>
+  <div class="atlas-lower">
+    <section class="panel"><div class="section-heading"><div><h2>Mes lieux</h2><p id="count">0 souvenir</p></div><button id="new">+ Nouveau lieu</button></div><div id="places" class="list"></div></section>
+    <section class="panel"><div class="section-heading"><div><h2 id="formtitle">Un souvenir de voyage</h2><p>Lieu, date, notes et photos.</p></div></div>
+      <form id="form" class="form"><label>Nom du lieu<input id="name" required placeholder="Ex. Chichén Itzá"></label><div class="row"><label>Pays<input id="country" placeholder="Mexique"></label><label>Date<input id="date" type="date"></label></div><label>Notes<textarea id="notes" placeholder="Ce que vous souhaitez garder en mémoire…"></textarea></label><label>Photos (maximum 5)<input id="files" type="file" accept="image/*" multiple></label><div id="preview"></div><div class="hint">Les photos originales et les lieux restent sur cet appareil. Les photos avec GPS peuvent positionner l’épingle et préremplir la date.</div><div class="actions"><button>Enregistrer</button><button type="button" id="clear" class="secondary">Effacer</button></div><div id="editrow" class="actions" hidden><button type="button" id="delete" class="danger">Supprimer ce lieu</button></div></form>
+    </section>
+  </div>
+</section>
+<section class="screen" id="screen-trips"><div class="page-heading"><div><h1>Mes voyages et lieux</h1><p>Vos découvertes classées dans le temps.</p></div><button class="primary-button" data-go="atlas">+ Ajouter</button></div><section class="panel"><div class="section-heading"><div><h2>Tous mes souvenirs</h2><p>Du plus récent au plus ancien</p></div></div><div id="places-trips" class="trip-list"></div></section><section class="panel"><div class="section-heading"><div><h2>Chronologie</h2><p>Vos voyages au fil des années</p></div></div><div id="timeline-copy" class="timeline"></div></section></section>
+<section class="screen" id="screen-photos"><div class="page-heading"><div><h1>Mes photos</h1><p>Vos images, classées par souvenir.</p></div></div><div id="photo-gallery" class="photo-gallery"></div></section>
+<section class="screen" id="screen-passport"><div class="passport-heading"><div class="passport-icon">✈</div><div><h1>Mon Passeport</h1><p>Ma collection de pays et de villes visités</p></div></div><div class="passport-summary"><strong id="passport-country-count">0</strong><span>pays</span><i></i><strong id="passport-city-count">0</strong><span>villes</span></div><div class="section-heading"><div><h2>Visas Pays</h2><p>Un timbre pour chaque nouveau pays.</p></div></div><div id="country-stamps" class="stamp-grid"></div><div class="section-heading"><div><h2>Visas Villes</h2><p>Capitales et grandes métropoles.</p></div></div><div id="city-stamps" class="city-stamp-grid"></div></section>
+<section class="screen" id="screen-settings"><div class="page-heading"><div><h1>Réglages</h1><p>Vos données et votre application.</p></div></div><section class="panel settings-card"><h2>Mes données</h2><p>Les souvenirs sont conservés dans le navigateur de cet appareil.</p><button id="export-settings">Exporter mes données</button><p class="hint">La synchronisation entre appareils sera ajoutée ultérieurement.</p></section></section>
+</main>
+<nav class="bottom-nav" aria-label="Navigation principale"><button class="nav-item active" data-screen="home"><span>◉</span><small>Accueil</small></button><button class="nav-item" data-screen="atlas"><span>◎</span><small>Atlas</small></button><button class="nav-item" data-screen="trips"><span>▣</span><small>Voyages</small></button><button class="nav-item" data-screen="photos"><span>▧</span><small>Photos</small></button><button class="nav-item" data-screen="passport"><span>▤</span><small>Passeport</small></button><button class="nav-item" data-screen="settings"><span>⚙</span><small>Réglages</small></button></nav>
+<div id="photoViewer" class="photo-viewer" role="dialog" aria-modal="true" aria-label="Visionneuse de photos"><button type="button" class="pv-close" aria-label="Fermer">×</button><button type="button" class="pv-prev" aria-label="Photo précédente">‹</button><div class="pv-stage"><img id="pvImage" alt="Photo du souvenir"><div id="pvCaption" class="pv-caption"></div></div><button type="button" class="pv-next" aria-label="Photo suivante">›</button><div id="pvCount" class="pv-count"></div></div><div class="foot">Le partage par lien public et la synchronisation entre appareils nécessitent un hébergement et un service en ligne : ils ne sont pas présentés comme fonctionnels dans ce prototype.</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
+<script>
+(()=>{const $=x=>document.getElementById(x),key='monAtlasPrototype_v1';let data=[],edit=null,coords=null,photos=[],photoCaptions=[],photoCaptionVisible=[],draftPin=null;try{data=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+const map=L.map('map').setView([25,5],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:22,attribution:'© OpenStreetMap contributors'}).addTo(map);const pins=L.layerGroup().addTo(map);
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function save(){try{localStorage.setItem(key,JSON.stringify(data));return true}catch(e){alert('Espace local insuffisant. Essayez avec moins de photos.');return false}}
+
+function renderPhotoPreviews(){
+ $('preview').innerHTML=photos.map((x,i)=>'<div class="photo-entry"><img class="thumb" src="'+x+'" alt="Photo '+(i+1)+' — toucher pour agrandir" tabindex="0"><small>Commentaire de cette photo</small><textarea class="photo-caption-input" data-photo-caption="'+i+'" placeholder="Ex. Grosse horloge">'+esc(photoCaptions[i]||'')+'</textarea><label class="caption-option"><input type="checkbox" data-photo-show="'+i+'" '+(photoCaptionVisible[i]!==false?'checked':'')+'><span>Afficher le commentaire sur la photo</span></label><small class="photo-save-status" aria-live="polite"></small></div>').join('');
+ $('preview').querySelectorAll('[data-photo-caption]').forEach(input=>input.addEventListener('input',()=>{
+  const i=Number(input.dataset.photoCaption);photoCaptions[i]=input.value;
+ }));
+ $('preview').querySelectorAll('[data-photo-show]').forEach(input=>input.addEventListener('change',()=>{
+  const i=Number(input.dataset.photoShow);
+  photoCaptionVisible[i]=input.checked;
+  const savedMemory=edit?data.find(p=>p.id===edit):null;
+  const status=input.closest('.photo-entry').querySelector('.photo-save-status');
+  if(savedMemory){
+   // Persist the changed visibility immediately, without submitting the form.
+   savedMemory.photoCaptionVisible=photoCaptionVisible.slice(0,photos.length);
+   try{
+    localStorage.setItem(key,JSON.stringify(data));
+    if(status)status.textContent='✓ Choix enregistré automatiquement';
+   }catch(err){
+    if(status)status.textContent='Échec de l’enregistrement — espace de stockage insuffisant';
+   }
+  }else{
+   // A not-yet-created place has no record to update; its first creation still needs Save.
+   if(status)status.textContent='Choix conservé pour le premier enregistrement du souvenir';
+  }
+ }));
+}
+
+
+function normCountry(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
+const countryFlags={france:'🇫🇷',italie:'🇮🇹',italy:'🇮🇹',allemagne:'🇩🇪',germany:'🇩🇪',espagne:'🇪🇸',spain:'🇪🇸',portugal:'🇵🇹',belgique:'🇧🇪',belgium:'🇧🇪',suisse:'🇨🇭',switzerland:'🇨🇭',mexique:'🇲🇽',mexico:'🇲🇽',thailande:'🇹🇭',japon:'🇯🇵','etats-unis':'🇺🇸','états-unis':'🇺🇸',usa:'🇺🇸',canada:'🇨🇦'}
+const cityInfo={'barcelone':['🇪🇸','Espagne','🏙️'],'barcelona':['🇪🇸','Espagne','🏙️'],'milan':['🇮🇹','Italie','🏛️'],'milano':['🇮🇹','Italie','🏛️'],'zurich':['🇨🇭','Suisse','🏙️'],'geneve':['🇨🇭','Suisse','⛲'],'new york':['🇺🇸','États-Unis','🗽'],'los angeles':['🇺🇸','États-Unis','🌴'],'paris':['🇫🇷','France','🗼'],'rome':['🇮🇹','Italie','🏛️'],'lisbonne':['🇵🇹','Portugal','🚋'],'berlin':['🇩🇪','Allemagne','🏛️'],'madrid':['🇪🇸','Espagne','🏙️'],'londres':['🇬🇧','Royaume-Uni','🎡']}
+function uniqueCountries(){const m=new Map();data.slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')).forEach(p=>{const k=normCountry(p.country);if(k&&!m.has(k))m.set(k,p)});return [...m.values()]}
+function showAppScreen(name){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id==='screen-'+name));document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.screen===name));if(name==='atlas')setTimeout(()=>map.invalidateSize(),120)}
+document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>showAppScreen(b.dataset.screen));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>showAppScreen(b.dataset.go));
+function renderNewScreens(){
+ const countries=uniqueCountries(),photosAll=[];data.forEach(p=>(p.photos||[]).forEach((src,i)=>photosAll.push({src,p,i})));
+ $('stat-countries').textContent=countries.length;$('stat-places').textContent=data.length;$('stat-photos').textContent=photosAll.length;$('stat-stamps').textContent=countries.length;
+ const recent=data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,3);
+ $('home-recent').innerHTML=recent.length?recent.map(p=>'<article class="recent-card" data-recent="'+esc(p.id)+'">'+((p.photos||[])[0]?'<img src="'+p.photos[0]+'" alt="">':'<div class="empty">✈</div>')+'<div><strong>'+esc(p.name)+'</strong><small>'+esc(p.country||'')+' · '+esc(p.date||'')+'</small></div></article>').join(''):'<div class="empty">Vos premières découvertes apparaîtront ici.</div>';
+ document.querySelectorAll('[data-recent]').forEach(x=>x.onclick=()=>{showAppScreen('atlas');load(x.dataset.recent)});
+ $('places-trips').innerHTML=recent.length||data.length?data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>'<article class="trip-card" data-trip="'+esc(p.id)+'">'+((p.photos||[])[0]?'<img src="'+p.photos[0]+'" alt="">':'<div class="empty">✈</div>')+'<div><h3>'+esc(p.name)+'</h3><p>'+esc(p.country||'Lieu non précisé')+'</p><p>'+esc(p.date||'Date inconnue')+' · '+((p.photos||[]).length)+' photo(s)</p></div></article>').join(''):'<div class="empty">Aucun souvenir enregistré.</div>';
+ document.querySelectorAll('[data-trip]').forEach(x=>x.onclick=()=>{showAppScreen('atlas');load(x.dataset.trip)});
+ $('timeline-copy').innerHTML=data.length?data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>'<div class="timeitem"><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.date||'Date inconnue')+' · '+esc(p.country||'')+'</div></div>').join(''):'<div class="empty">Votre chronologie apparaîtra ici.</div>';
+ $('photo-gallery').innerHTML=photosAll.length?photosAll.map((x,i)=>'<div class="gallery-tile" data-photo="'+i+'"><img src="'+x.src+'" alt=""><span>'+esc(x.p.name)+'</span></div>').join(''):'<div class="empty">Vos photos apparaîtront ici après l’enregistrement de vos lieux.</div>';
+ document.querySelectorAll('[data-photo]').forEach(x=>x.onclick=()=>{const item=photosAll[+x.dataset.photo];load(item.p.id);openViewer(item.i)});
+ $('passport-country-count').textContent=countries.length;
+ $('country-stamps').innerHTML=countries.length?countries.map(p=>{const k=normCountry(p.country),flag=countryFlags[k]||'🌍',art=({france:'🗼',italie:'🏛️',espagne:'🏛️',allemagne:'🏰',portugal:'🚋',belgique:'🏛️',suisse:'🏔️',mexique:'🛕'})[k]||'🌐';return '<div class="stamp"><span class="flag">'+flag+'</span><strong>'+esc(p.country.toUpperCase())+'</strong><span class="stamp-art">'+art+'</span><span class="stamp-frieze">⌁ ⌂ ⌁ ⌂ ⌁</span><span class="cancel">MON ATLAS<br>VISITÉ</span></div>'}).join(''):'<div class="empty">Votre premier visa apparaîtra après l’enregistrement d’un lieu dans un nouveau pays.</div>';
+ const cities=[];data.forEach(p=>{const k=normCountry(p.name);if(cityInfo[k]&&!cities.some(x=>x.k===k))cities.push({k,p,info:cityInfo[k]})});
+ $('passport-city-count').textContent=cities.length;$('city-stamps').innerHTML=cities.length?cities.map(c=>'<div class="city-stamp"><span style="font-size:30px">'+c.info[2]+'</span><div><b>'+esc(c.p.name)+'</b><small>'+c.info[0]+' '+c.info[1]+' · '+esc(c.p.date||'Date inconnue')+'</small></div></div>').join(''):'<div class="empty">Les visas des grandes villes reconnues apparaîtront ici.</div>';
+}
+$('export-settings').onclick=$('export').onclick;
+function render(){pins.clearLayers();data.forEach(p=>{const m=L.marker([p.lat,p.lng]).addTo(pins).bindPopup('<b>'+esc(p.name)+'</b><br>'+esc(p.country)+' '+esc(p.date));m.on('click',()=>load(p.id))});$('count').textContent=data.length+' souvenir'+(data.length>1?'s':'');$('places').innerHTML=data.length?data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>'<div class="swipe-row" data-row="'+p.id+'"><button class="swipe-delete" type="button" aria-label="Supprimer '+esc(p.name)+'" data-delete="'+p.id+'">🗑<br>Supprimer</button><div class="swipe-card" data-card="'+p.id+'"><div class="swipe-main"><strong>'+esc(p.name)+'</strong><div class="sub">'+esc(p.country||'Lieu non précisé')+' · '+esc(p.date||'Date inconnue')+'</div></div><button class="secondary" data-id="'+p.id+'">Ouvrir</button></div></div>').join(''):'<div class="empty">Cliquez sur la carte pour ajouter votre premier souvenir.</div>';
+document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>load(b.dataset.id));
+document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{
+ const id=b.dataset.delete,p=data.find(x=>x.id===id);if(!p)return;
+ if(confirm('Supprimer le souvenir « '+p.name+' » ? Cette action est définitive sur cet appareil.')){
+  data=data.filter(x=>x.id!==id);save();if(edit===id)reset();render();
+ }
+});
+document.querySelectorAll('[data-card]').forEach(card=>{
+ let startX=0,startY=0,delta=0;
+ card.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;startX=e.touches[0].clientX;startY=e.touches[0].clientY;delta=0;},{passive:true});
+ card.addEventListener('touchmove',e=>{
+  if(e.touches.length!==1)return;
+  const dx=e.touches[0].clientX-startX,dy=e.touches[0].clientY-startY;
+  if(Math.abs(dx)>Math.abs(dy)&&dx<0){delta=Math.max(-82,dx);card.style.transition='none';card.style.transform='translateX('+delta+'px)';}
+ },{passive:true});
+ card.addEventListener('touchend',()=>{
+  card.style.transition='transform .18s ease';
+  if(delta<-35){card.classList.add('open');card.style.transform='translateX(-82px)';}
+  else{card.classList.remove('open');card.style.transform='translateX(0)';}
+ });
+ card.addEventListener('click',e=>{
+  if(card.classList.contains('open')){e.preventDefault();card.classList.remove('open');card.style.transform='translateX(0)';}
+ });
+});$('timeline').innerHTML=data.length?data.slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')).map(p=>'<div class="timeitem"><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.date||'Date inconnue')+' · '+esc(p.country||'')+'</div>'+esc(p.notes)+'</div>').join(''):'<div class="empty">Votre chronologie apparaîtra ici.</div>'};renderNewScreens()
+function reset(){edit=null;coords=null;photos=[];photoCaptions=[];photoCaptionVisible=[];if(draftPin){map.removeLayer(draftPin);draftPin=null;}$('form').reset();$('preview').innerHTML='';$('editrow').hidden=true;$('formtitle').textContent='Un souvenir de voyage'}
+function load(id){const p=data.find(x=>x.id===id);if(!p)return;if(draftPin){map.removeLayer(draftPin);draftPin=null;}edit=id;coords={lat:p.lat,lng:p.lng};photos=(p.photos||[]).slice();photoCaptions=Array.isArray(p.photoCaptions)?p.photoCaptions.slice():photos.map(()=>'');photoCaptionVisible=Array.isArray(p.photoCaptionVisible)?p.photoCaptionVisible.slice():photos.map(()=>true);while(photoCaptions.length<photos.length)photoCaptions.push(' '.trim());$('name').value=p.name;$('country').value=p.country||'';$('date').value=p.date||'';$('notes').value=p.notes||'';renderPhotoPreviews();$('editrow').hidden=false;$('formtitle').textContent='Modifier le souvenir';map.setView([p.lat,p.lng],Math.max(5,map.getZoom()))}
+map.on('click',e=>{
+ reset();
+ coords={lat:e.latlng.lat,lng:e.latlng.lng};
+ draftPin=L.marker(e.latlng,{draggable:true,autoPan:true,keyboard:true}).addTo(map);
+ draftPin.bindPopup('Épingle placée<br>Maintenez-la puis déplacez-la pour ajuster.').openPopup();
+ draftPin.on('dragend',()=>{const ll=draftPin.getLatLng();coords={lat:ll.lat,lng:ll.lng};});
+ $('formtitle').textContent='Nouveau souvenir — épingle placée';
+ $('name').focus()
+});
+$('files').onchange=async e=>{
+ const chosen=Array.from(e.target.files||[]).filter(f=>f.type.startsWith('image/')).slice(0,5);
+ if(!chosen.length)return;
+ const first=chosen[0];
+ try{
+  if(window.exifr){
+   const meta=await exifr.parse(first,{gps:true,exif:true});
+   if(meta){
+    const d=meta.DateTimeOriginal||meta.CreateDate||meta.ModifyDate;
+    if(d instanceof Date&&!$('date').value)$('date').value=d.toISOString().slice(0,10);
+    else if(typeof d==='string'&&!$('date').value){const m=d.match(/^(\d{4}):(\d{2}):(\d{2})/);if(m)$('date').value=m[1]+'-'+m[2]+'-'+m[3];}
+    const lat=meta.latitude??meta.GPSLatitude, lng=meta.longitude??meta.GPSLongitude;
+    if(Number.isFinite(lat)&&Number.isFinite(lng)){
+     coords={lat,lng};if(draftPin)map.removeLayer(draftPin);map.setView([lat,lng],17);
+     draftPin=L.marker([lat,lng],{draggable:true,autoPan:true,keyboard:true}).addTo(map);
+     draftPin.bindPopup('GPS de la photo<br>Épingle déplaçable').openPopup();
+     draftPin.on('dragend',()=>{const ll=draftPin.getLatLng();coords={lat:ll.lat,lng:ll.lng};});
+     try{const res=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+lat+'&lon='+lng+'&zoom=10&addressdetails=1',{headers:{'Accept-Language':'fr'}});if(res.ok){const geo=await res.json(),a=geo.address||{};if(!$('name').value)$('name').value=geo.name||a.tourism||a.amenity||a.village||a.town||a.city||a.municipality||'';if(!$('country').value)$('country').value=a.country||'';}}catch(err){}
+    }else{alert('Cette photo ne contient pas de coordonnées GPS. La date sera préremplie si disponible. Zoomez sur la carte puis placez l’épingle manuellement.');}
+   }
+  }
+ }catch(err){console.log('EXIF non disponible',err)}
+ for(const f of chosen.slice(0,5-photos.length)){photos.push(await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(f)}));photoCaptions.push('');photoCaptionVisible.push(true)}
+ renderPhotoPreviews();e.target.value='';
+};
+
+const viewer=$('photoViewer'),pvImage=$('pvImage'),pvCount=$('pvCount'),pvPrev=viewer.querySelector('.pv-prev'),pvNext=viewer.querySelector('.pv-next'),pvClose=viewer.querySelector('.pv-close');
+let viewerPhotos=[],viewerIndex=0,viewerTouchX=null,viewerNote="";const pvCaption=$('pvCaption');
+function chooseCaptionColor(img){
+ try{
+  const canvas=document.createElement('canvas'),w=48,h=24;canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  // Sample the lower part of the photo where the caption will be displayed.
+  ctx.drawImage(img,0,Math.max(0,img.naturalHeight-h*4),img.naturalWidth,Math.min(img.naturalHeight,h*4),0,0,w,h);
+  const pixels=ctx.getImageData(0,0,w,h).data;let sum=0,n=0;
+  for(let i=0;i<pixels.length;i+=4){sum+=(.2126*pixels[i]+.7152*pixels[i+1]+.0722*pixels[i+2])/255;n++;}
+  return sum/n>.52?'dark':'light';
+ }catch(e){return 'light'}
+}
+function showViewerPhoto(){
+ if(!viewerPhotos.length)return;
+ pvImage.onload=()=>{pvCaption.classList.toggle('dark',chooseCaptionColor(pvImage)==='dark');};
+ pvImage.src=viewerPhotos[viewerIndex];
+ pvCount.textContent=(viewerIndex+1)+' / '+viewerPhotos.length;
+ pvPrev.hidden=viewerPhotos.length<2;pvNext.hidden=viewerPhotos.length<2;
+ const currentCaption=(photoCaptionVisible[viewerIndex]!==false?(photoCaptions[viewerIndex]||'').trim():'');
+ pvCaption.textContent=currentCaption;
+ pvCaption.hidden=!currentCaption;
+}
+function openViewer(index){
+ viewerPhotos=photos.slice();if(!viewerPhotos.length)return;
+ const savedMemory=edit?data.find(p=>p.id===edit):null;
+ viewerNote='';
+ if(savedMemory&&Array.isArray(savedMemory.photoCaptions))photoCaptions=savedMemory.photoCaptions.slice();
+ if(savedMemory&&Array.isArray(savedMemory.photoCaptionVisible))photoCaptionVisible=savedMemory.photoCaptionVisible.slice();
+ viewerIndex=Math.max(0,Math.min(index,viewerPhotos.length-1));
+ showViewerPhoto();viewer.classList.add('show');document.body.style.overflow='hidden';
+}
+function closeViewer(){viewer.classList.remove('show');document.body.style.overflow='';pvImage.src='';pvCaption.textContent='';}
+function moveViewer(step){if(viewerPhotos.length<2)return;viewerIndex=(viewerIndex+step+viewerPhotos.length)%viewerPhotos.length;showViewerPhoto();}
+$('preview').addEventListener('click',e=>{const img=e.target.closest('img.thumb');if(!img)return;const imgs=Array.from($('preview').querySelectorAll('img.thumb'));openViewer(imgs.indexOf(img));});
+$('preview').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('img.thumb')){e.preventDefault();const imgs=Array.from($('preview').querySelectorAll('img.thumb'));openViewer(imgs.indexOf(e.target));}});
+pvPrev.onclick=()=>moveViewer(-1);pvNext.onclick=()=>moveViewer(1);pvClose.onclick=closeViewer;
+viewer.addEventListener('click',e=>{if(e.target===viewer)closeViewer();});
+viewer.addEventListener('touchstart',e=>{viewerTouchX=e.changedTouches[0].clientX;},{passive:true});
+viewer.addEventListener('touchend',e=>{if(viewerTouchX===null)return;const dx=e.changedTouches[0].clientX-viewerTouchX;viewerTouchX=null;if(Math.abs(dx)>45)moveViewer(dx<0?1:-1);},{passive:true});
+document.addEventListener('keydown',e=>{if(!viewer.classList.contains('show'))return;if(e.key==='Escape')closeViewer();if(e.key==='ArrowRight')moveViewer(1);if(e.key==='ArrowLeft')moveViewer(-1);});
+$('form').onsubmit=e=>{e.preventDefault();if(!coords){alert('Touchez la carte pour placer une épingle, puis enregistrez le souvenir.');return}const p={id:edit||('p'+Date.now()),name:$('name').value.trim(),country:$('country').value.trim(),date:$('date').value,notes:$('notes').value.trim(),photoCaptions:photoCaptions.slice(0,photos.length),photoCaptionVisible:photoCaptionVisible.slice(0,photos.length),lat:coords.lat,lng:coords.lng,photos};data=edit?data.map(x=>x.id===edit?p:x):[...data,p];if(save()){reset();render();map.setView([p.lat,p.lng],Math.max(4,map.getZoom()))}};
+$('clear').onclick=reset;$('new').onclick=()=>{reset();map.setView([25,5],2)};$('world').onclick=()=>map.setView([25,5],2);$('delete').onclick=()=>{if(edit&&confirm('Supprimer ce souvenir de cet appareil ?')){data=data.filter(x=>x.id!==edit);save();reset();render()}};
+$('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='mon-atlas-souvenirs.json';a.click();URL.revokeObjectURL(a.href)};$('export-settings').onclick=$('export').onclick;render();showAppScreen('home');
+// Globe 3D with NASA Blue Marble texture
+let scene,camera,renderer,globe,start=performance.now();const canvas=$('earth');
+try{scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.z=4.2;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));scene.add(new THREE.AmbientLight(0xffffff,1.25));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-3,2,4);scene.add(sun);const mat=new THREE.MeshPhongMaterial({color:0xffffff,shininess:8});globe=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),mat);scene.add(globe);new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.colorSpace=THREE.SRGBColorSpace;mat.map=t;mat.needsUpdate=true},undefined,()=>mat.color.set(0x356b95));globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.075;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=3.45;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){
+  // Repli autonome : globe animé en 2D si Three.js/WebGL est indisponible.
+  const ctx=canvas.getContext('2d');
+  if(ctx){
+    const land=[
+      [[-.88,-.55],[-.72,-.72],[-.5,-.68],[-.38,-.5],[-.45,-.3],[-.58,-.18],[-.55,.02],[-.68,.18],[-.77,.02],[-.9,-.12]],
+      [[-.48,.12],[-.3,.2],[-.22,.42],[-.3,.72],[-.4,.9],[-.52,.56],[-.58,.3]],
+      [[-.08,-.62],[.12,-.72],[.34,-.66],[.48,-.5],[.4,-.34],[.22,-.3],[.1,-.12],[-.06,-.2],[-.18,-.42]],
+      [[.02,-.08],[.22,-.02],[.32,.2],[.26,.48],[.12,.76],[-.02,.56],[-.12,.26]],
+      [[.42,-.42],[.62,-.5],[.82,-.34],[.76,-.12],[.58,-.08],[.48,.12],[.36,-.08]],
+      [[.68,.24],[.82,.2],[.9,.36],[.82,.52],[.7,.48]]
+    ];
+    function drawFallback(now){
+      requestAnimationFrame(drawFallback);
+      const w=canvas.clientWidth||600,h=canvas.clientHeight||320,dpr=Math.min(devicePixelRatio||1,2);
+      if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
+      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+      const r=Math.min(w*.37,h*.47),cx=w/2,cy=h/2+4,angle=(now||0)*.000035;
+      const glow=ctx.createRadialGradient(cx-r*.35,cy-r*.4,r*.05,cx,cy,r*1.3);
+      glow.addColorStop(0,'#b9e8f8');glow.addColorStop(.55,'#2386b7');glow.addColorStop(1,'#063657');
+      ctx.save();ctx.shadowColor='#8bd8ff';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();ctx.restore();
+      ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+      ctx.translate(cx,cy);ctx.scale(r,r);ctx.rotate(Math.sin(angle)*.035);
+      const shift=Math.sin(angle)*.22;
+      land.forEach((poly,i)=>{ctx.beginPath();poly.forEach(([x,y],j)=>{let xx=x+shift*(i%2?-.6:1);if(j)ctx.lineTo(xx,y);else ctx.moveTo(xx,y)});ctx.closePath();ctx.fillStyle=i%2?'#d7e8d0':'#e8eadc';ctx.fill();ctx.strokeStyle='#9dbba9';ctx.lineWidth=.008;ctx.stroke();});
+      ctx.restore();
+      const shade=ctx.createRadialGradient(cx-r*.25,cy-r*.3,r*.55,cx,cy,r*1.05);shade.addColorStop(0,'#ffffff00');shade.addColorStop(.75,'#062f4b18');shade.addColorStop(1,'#00182d99');
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=shade;ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#b7e8ff88';ctx.lineWidth=1.2;ctx.stroke();
+    }
+    requestAnimationFrame(drawFallback);
+  }
+}
+})();
+</script></body></html>
