@@ -246,7 +246,30 @@ $('clear').onclick=reset;$('new').onclick=()=>{reset();map.setView([25,5],2)};$(
 $('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='mon-atlas-souvenirs.json';a.click();URL.revokeObjectURL(a.href)};$('export-settings').onclick=$('export').onclick;render();showAppScreen('home');
 // Globe 3D with NASA Blue Marble texture
 let scene,camera,renderer,globe,start=performance.now();const canvas=$('earth');
-try{scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.z=4.2;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));scene.add(new THREE.AmbientLight(0xffffff,1.25));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-3,2,4);scene.add(sun);const mat=new THREE.MeshPhongMaterial({color:0xffffff,shininess:8});globe=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),mat);globe.scale.setScalar(.48);scene.add(globe);new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.encoding=THREE.sRGBEncoding;mat.map=t;mat.needsUpdate=true},undefined,()=>mat.color.set(0x356b95));globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));halo.scale.setScalar(.48);scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.075;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=4.6;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){
+try{scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.z=4.2;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));scene.add(new THREE.AmbientLight(0xffffff,1.25));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-3,2,4);scene.add(sun);const mat=new THREE.MeshPhongMaterial({color:0x2f86aa,shininess:8});globe=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),mat);globe.scale.setScalar(.48);scene.add(globe);new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.encoding=THREE.sRGBEncoding;mat.map=t;mat.needsUpdate=true},undefined,()=>{
+  // Texture cartographique locale de secours : aucun serveur externe requis.
+  const tc=document.createElement('canvas');tc.width=1024;tc.height=512;
+  const x=tc.getContext('2d');
+  const ocean=x.createLinearGradient(0,0,0,512);
+  ocean.addColorStop(0,'#79c5dc');ocean.addColorStop(.5,'#2e91bd');ocean.addColorStop(1,'#17638f');
+  x.fillStyle=ocean;x.fillRect(0,0,1024,512);
+  x.fillStyle='#d9dfc4';x.strokeStyle='#a6b99d';x.lineWidth=3;
+  const continents=[
+    [[75,92],[112,55],[178,45],[220,72],[260,66],[292,105],[275,145],[236,158],[220,194],[185,202],[165,244],[130,232],[112,190],[82,165]],
+    [[220,240],[255,250],[277,288],[266,337],[244,390],[220,430],[202,388],[192,330],[200,280]],
+    [[420,82],[465,60],[505,78],[526,110],[558,115],[574,150],[552,178],[518,184],[500,220],[465,210],[445,175],[418,145]],
+    [[470,220],[515,215],[550,245],[562,285],[548,330],[528,376],[500,402],[478,365],[460,320],[452,270]],
+    [[550,85],[615,55],[690,65],[740,90],[800,80],[860,112],[890,155],[858,188],[810,190],[780,220],[735,208],[710,178],[660,180],[630,150],[590,155],[560,125]],
+    [[760,255],[805,245],[845,270],[865,315],[840,355],[805,345],[780,310]],
+    [[900,390],[930,378],[960,395],[950,420],[920,425]]
+  ];
+  for(const poly of continents){x.beginPath();poly.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill();x.stroke();}
+  // Lignes de latitude très discrètes.
+  x.strokeStyle='#ffffff35';x.lineWidth=1;
+  for(let y=64;y<512;y+=64){x.beginPath();x.moveTo(0,y);x.lineTo(1024,y);x.stroke();}
+  const tex=new THREE.CanvasTexture(tc);tex.encoding=THREE.sRGBEncoding;tex.needsUpdate=true;
+  mat.map=tex;mat.color.set(0xffffff);mat.needsUpdate=true;
+});globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));halo.scale.setScalar(.48);scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.075;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=4.6;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){
   // Repli autonome : globe animé en 2D si Three.js/WebGL est indisponible.
   const ctx=canvas.getContext('2d');
   if(ctx){
