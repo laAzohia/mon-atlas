@@ -28,7 +28,7 @@
 #preview{display:flex;flex-wrap:wrap;gap:6px}
 #preview .thumb{cursor:zoom-in;margin:0;outline:0}
 #preview .thumb:focus{outline:2px solid #3b82f6;outline-offset:2px}
-\n@media(max-width:800px){main{grid-template-columns:1fr;padding:10px}#map{height:370px}header{padding:13px}.brand{font-size:23px}.intro{height:260px}}
+@media(max-width:800px){main{grid-template-columns:1fr;padding:10px}#map{height:370px}header{padding:13px}.brand{font-size:23px}.intro{height:260px}}
 
 :root{--navy:#073b63;--blue:#087eb5;--sky:#69b9dc;--pale:#edf7fc;--ink:#15354c;--muted:#637b8b;--line:#dceaf1}
 body{background:#f4f9fc;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -140,7 +140,6 @@ function renderNewScreens(){
  const cities=[];data.forEach(p=>{const k=normCountry(p.name);if(cityInfo[k]&&!cities.some(x=>x.k===k))cities.push({k,p,info:cityInfo[k]})});
  $('passport-city-count').textContent=cities.length;$('city-stamps').innerHTML=cities.length?cities.map(c=>'<div class="city-stamp"><span style="font-size:30px">'+c.info[2]+'</span><div><b>'+esc(c.p.name)+'</b><small>'+c.info[0]+' '+c.info[1]+' · '+esc(c.p.date||'Date inconnue')+'</small></div></div>').join(''):'<div class="empty">Les visas des grandes villes reconnues apparaîtront ici.</div>';
 }
-$('export-settings').onclick=$('export').onclick;
 function render(){pins.clearLayers();data.forEach(p=>{const m=L.marker([p.lat,p.lng]).addTo(pins).bindPopup('<b>'+esc(p.name)+'</b><br>'+esc(p.country)+' '+esc(p.date));m.on('click',()=>load(p.id))});$('count').textContent=data.length+' souvenir'+(data.length>1?'s':'');$('places').innerHTML=data.length?data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>'<div class="swipe-row" data-row="'+p.id+'"><button class="swipe-delete" type="button" aria-label="Supprimer '+esc(p.name)+'" data-delete="'+p.id+'">🗑<br>Supprimer</button><div class="swipe-card" data-card="'+p.id+'"><div class="swipe-main"><strong>'+esc(p.name)+'</strong><div class="sub">'+esc(p.country||'Lieu non précisé')+' · '+esc(p.date||'Date inconnue')+'</div></div><button class="secondary" data-id="'+p.id+'">Ouvrir</button></div></div>').join(''):'<div class="empty">Cliquez sur la carte pour ajouter votre premier souvenir.</div>';
 document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>load(b.dataset.id));
 document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{
@@ -165,7 +164,7 @@ document.querySelectorAll('[data-card]').forEach(card=>{
  card.addEventListener('click',e=>{
   if(card.classList.contains('open')){e.preventDefault();card.classList.remove('open');card.style.transform='translateX(0)';}
  });
-});$('timeline').innerHTML=data.length?data.slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')).map(p=>'<div class="timeitem"><b>'+esc(p.name)+'</b><div class="sub">'+esc(p.date||'Date inconnue')+' · '+esc(p.country||'')+'</div>'+esc(p.notes)+'</div>').join(''):'<div class="empty">Votre chronologie apparaîtra ici.</div>'};renderNewScreens()
+});renderNewScreens()}
 function reset(){edit=null;coords=null;photos=[];photoCaptions=[];photoCaptionVisible=[];if(draftPin){map.removeLayer(draftPin);draftPin=null;}$('form').reset();$('preview').innerHTML='';$('editrow').hidden=true;$('formtitle').textContent='Un souvenir de voyage'}
 function load(id){const p=data.find(x=>x.id===id);if(!p)return;if(draftPin){map.removeLayer(draftPin);draftPin=null;}edit=id;coords={lat:p.lat,lng:p.lng};photos=(p.photos||[]).slice();photoCaptions=Array.isArray(p.photoCaptions)?p.photoCaptions.slice():photos.map(()=>'');photoCaptionVisible=Array.isArray(p.photoCaptionVisible)?p.photoCaptionVisible.slice():photos.map(()=>true);while(photoCaptions.length<photos.length)photoCaptions.push(' '.trim());$('name').value=p.name;$('country').value=p.country||'';$('date').value=p.date||'';$('notes').value=p.notes||'';renderPhotoPreviews();$('editrow').hidden=false;$('formtitle').textContent='Modifier le souvenir';map.setView([p.lat,p.lng],Math.max(5,map.getZoom()))}
 map.on('click',e=>{
@@ -230,8 +229,6 @@ function openViewer(index){
  viewerPhotos=photos.slice();if(!viewerPhotos.length)return;
  const savedMemory=edit?data.find(p=>p.id===edit):null;
  viewerNote='';
- if(savedMemory&&Array.isArray(savedMemory.photoCaptions))photoCaptions=savedMemory.photoCaptions.slice();
- if(savedMemory&&Array.isArray(savedMemory.photoCaptionVisible))photoCaptionVisible=savedMemory.photoCaptionVisible.slice();
  viewerIndex=Math.max(0,Math.min(index,viewerPhotos.length-1));
  showViewerPhoto();viewer.classList.add('show');document.body.style.overflow='hidden';
 }
@@ -249,6 +246,38 @@ $('clear').onclick=reset;$('new').onclick=()=>{reset();map.setView([25,5],2)};$(
 $('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='mon-atlas-souvenirs.json';a.click();URL.revokeObjectURL(a.href)};$('export-settings').onclick=$('export').onclick;render();showAppScreen('home');
 // Globe 3D with NASA Blue Marble texture
 let scene,camera,renderer,globe,start=performance.now();const canvas=$('earth');
-try{scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.z=4.2;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));scene.add(new THREE.AmbientLight(0xffffff,1.25));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-3,2,4);scene.add(sun);const mat=new THREE.MeshPhongMaterial({color:0xffffff,shininess:8});globe=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),mat);scene.add(globe);new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.colorSpace=THREE.SRGBColorSpace;mat.map=t;mat.needsUpdate=true},undefined,()=>mat.color.set(0x356b95));globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.075;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=3.45;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){canvas.style.display='none'}
+try{scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.z=4.2;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));scene.add(new THREE.AmbientLight(0xffffff,1.25));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-3,2,4);scene.add(sun);const mat=new THREE.MeshPhongMaterial({color:0xffffff,shininess:8});globe=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),mat);scene.add(globe);new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.encoding=THREE.sRGBEncoding;mat.map=t;mat.needsUpdate=true},undefined,()=>mat.color.set(0x356b95));globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.075;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=3.45;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){
+  // Repli autonome : globe animé en 2D si Three.js/WebGL est indisponible.
+  const ctx=canvas.getContext('2d');
+  if(ctx){
+    const land=[
+      [[-.88,-.55],[-.72,-.72],[-.5,-.68],[-.38,-.5],[-.45,-.3],[-.58,-.18],[-.55,.02],[-.68,.18],[-.77,.02],[-.9,-.12]],
+      [[-.48,.12],[-.3,.2],[-.22,.42],[-.3,.72],[-.4,.9],[-.52,.56],[-.58,.3]],
+      [[-.08,-.62],[.12,-.72],[.34,-.66],[.48,-.5],[.4,-.34],[.22,-.3],[.1,-.12],[-.06,-.2],[-.18,-.42]],
+      [[.02,-.08],[.22,-.02],[.32,.2],[.26,.48],[.12,.76],[-.02,.56],[-.12,.26]],
+      [[.42,-.42],[.62,-.5],[.82,-.34],[.76,-.12],[.58,-.08],[.48,.12],[.36,-.08]],
+      [[.68,.24],[.82,.2],[.9,.36],[.82,.52],[.7,.48]]
+    ];
+    function drawFallback(now){
+      requestAnimationFrame(drawFallback);
+      const w=canvas.clientWidth||600,h=canvas.clientHeight||320,dpr=Math.min(devicePixelRatio||1,2);
+      if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
+      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+      const r=Math.min(w*.37,h*.47),cx=w/2,cy=h/2+4,angle=(now||0)*.000035;
+      const glow=ctx.createRadialGradient(cx-r*.35,cy-r*.4,r*.05,cx,cy,r*1.3);
+      glow.addColorStop(0,'#b9e8f8');glow.addColorStop(.55,'#2386b7');glow.addColorStop(1,'#063657');
+      ctx.save();ctx.shadowColor='#8bd8ff';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=glow;ctx.fill();ctx.restore();
+      ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+      ctx.translate(cx,cy);ctx.scale(r,r);ctx.rotate(Math.sin(angle)*.035);
+      const shift=Math.sin(angle)*.22;
+      land.forEach((poly,i)=>{ctx.beginPath();poly.forEach(([x,y],j)=>{let xx=x+shift*(i%2?-.6:1);if(j)ctx.lineTo(xx,y);else ctx.moveTo(xx,y)});ctx.closePath();ctx.fillStyle=i%2?'#d7e8d0':'#e8eadc';ctx.fill();ctx.strokeStyle='#9dbba9';ctx.lineWidth=.008;ctx.stroke();});
+      ctx.restore();
+      const shade=ctx.createRadialGradient(cx-r*.25,cy-r*.3,r*.55,cx,cy,r*1.05);shade.addColorStop(0,'#ffffff00');shade.addColorStop(.75,'#062f4b18');shade.addColorStop(1,'#00182d99');
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=shade;ctx.fill();
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#b7e8ff88';ctx.lineWidth=1.2;ctx.stroke();
+    }
+    requestAnimationFrame(drawFallback);
+  }
+}
 })();
 </script></body></html>
