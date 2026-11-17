@@ -247,29 +247,69 @@ $('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createOb
 // Globe 3D with NASA Blue Marble texture
 let scene,camera,renderer,globe,start=performance.now();const canvas=$('earth');
 try{scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(38,1,.1,100);camera.position.z=2.68;renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));scene.add(new THREE.AmbientLight(0xffffff,1.25));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(-3,2,4);scene.add(sun);const mat=new THREE.MeshPhongMaterial({color:0x2f86aa,shininess:8});globe=new THREE.Mesh(new THREE.SphereGeometry(1,96,96),mat);globe.scale.setScalar(.88);scene.add(globe);const applyFallback=()=>{
-  // Texture cartographique locale de secours : aucun serveur externe requis.
-  const tc=document.createElement('canvas');tc.width=1024;tc.height=512;
+  // Texture terrestre de secours détaillée, dessinée localement.
+  const tc=document.createElement('canvas');tc.width=2048;tc.height=1024;
   const x=tc.getContext('2d');
-  const ocean=x.createLinearGradient(0,0,0,512);
-  ocean.addColorStop(0,'#79c5dc');ocean.addColorStop(.5,'#2e91bd');ocean.addColorStop(1,'#17638f');
-  x.fillStyle=ocean;x.fillRect(0,0,1024,512);
-  x.fillStyle='#d9dfc4';x.strokeStyle='#a6b99d';x.lineWidth=3;
-  const continents=[
-    [[75,92],[112,55],[178,45],[220,72],[260,66],[292,105],[275,145],[236,158],[220,194],[185,202],[165,244],[130,232],[112,190],[82,165]],
-    [[220,240],[255,250],[277,288],[266,337],[244,390],[220,430],[202,388],[192,330],[200,280]],
-    [[420,82],[465,60],[505,78],[526,110],[558,115],[574,150],[552,178],[518,184],[500,220],[465,210],[445,175],[418,145]],
-    [[470,220],[515,215],[550,245],[562,285],[548,330],[528,376],[500,402],[478,365],[460,320],[452,270]],
-    [[550,85],[615,55],[690,65],[740,90],[800,80],[860,112],[890,155],[858,188],[810,190],[780,220],[735,208],[710,178],[660,180],[630,150],[590,155],[560,125]],
-    [[760,255],[805,245],[845,270],[865,315],[840,355],[805,345],[780,310]],
-    [[900,390],[930,378],[960,395],[950,420],[920,425]]
+  const ocean=x.createLinearGradient(0,0,0,1024);
+  ocean.addColorStop(0,'#75c3d9');ocean.addColorStop(.48,'#328fb9');ocean.addColorStop(1,'#155d89');
+  x.fillStyle=ocean;x.fillRect(0,0,2048,1024);
+  // Subtle ocean currents and bathymetric bands.
+  for(let k=0;k<7;k++){
+    x.beginPath();x.ellipse(1024,512,260+k*125,90+k*47,-.12,0,Math.PI*2);
+    x.strokeStyle='rgba(190,235,244,.075)';x.lineWidth=5;x.stroke();
+  }
+  const landPaths=[
+    // North America, including Alaska, Canadian archipelago and Central America.
+    "M 105 190 L 145 142 202 112 250 104 286 78 330 94 356 126 395 133 425 164 456 177 468 209 448 235 420 245 404 275 375 286 360 316 335 330 316 366 290 381 274 415 247 430 224 414 206 382 185 367 171 335 146 320 132 286 111 268 96 231 Z",
+    "M 92 180 L 62 166 48 139 68 116 104 128 124 151 Z",
+    "M 272 430 L 294 423 312 444 330 455 345 478 364 494 380 524 369 544 350 531 338 509 321 497 310 476 290 461 Z",
+    // Greenland and Arctic islands.
+    "M 440 78 L 475 49 518 54 550 82 544 118 521 145 486 153 459 131 438 105 Z",
+    "M 385 94 L 405 82 421 95 416 115 396 121 Z",
+    // South America.
+    "M 366 492 L 398 474 432 481 458 505 466 540 454 572 444 606 430 642 419 682 399 720 390 764 369 811 350 851 334 825 338 785 322 746 326 708 310 673 316 638 301 607 307 574 293 547 310 520 337 510 Z",
+    // Europe and western Asia.
+    "M 876 190 L 902 169 934 166 956 180 978 174 1001 187 1023 181 1043 196 1068 190 1086 210 1072 228 1045 231 1027 248 1002 245 985 262 961 252 945 269 922 254 905 263 886 244 867 231 Z",
+    // Africa, recognisable outline with west bulge, Horn and southern taper.
+    "M 914 285 L 946 265 979 270 1007 286 1034 286 1060 303 1075 330 1062 354 1082 375 1074 409 1054 436 1041 474 1022 511 1008 552 987 592 969 626 949 649 931 625 920 591 899 563 890 526 872 498 863 460 842 432 849 397 833 369 850 340 860 310 885 296 Z",
+    // Arabian peninsula and India.
+    "M 1081 291 L 1112 283 1138 296 1153 321 1136 344 1106 350 1085 333 Z",
+    "M 1152 324 L 1175 312 1197 330 1207 361 1198 393 1183 423 1167 407 1158 374 Z",
+    // Asia, Siberia to China and Southeast Asia.
+    "M 1040 160 L 1074 139 1114 144 1144 128 1182 138 1210 125 1252 140 1284 129 1318 148 1350 141 1384 159 1417 152 1452 171 1488 165 1524 188 1555 207 1570 235 1545 257 1513 250 1487 269 1454 260 1428 278 1395 269 1367 286 1335 270 1305 281 1278 261 1248 272 1220 250 1192 255 1164 233 1136 239 1112 218 1082 221 1060 201 Z",
+    "M 1220 257 L 1248 265 1265 291 1288 309 1295 337 1279 353 1260 332 1243 313 1226 288 Z",
+    "M 1320 281 L 1348 277 1370 295 1385 321 1370 344 1352 332 1338 311 Z",
+    // Japan, Indonesia, Madagascar, Australia and New Zealand.
+    "M 1515 292 L 1530 300 1537 321 1528 340 1516 329 Z",
+    "M 1390 385 L 1425 374 1461 385 1494 407 1516 438 1493 459 1460 452 1433 432 1405 422 Z",
+    "M 1535 410 L 1556 402 1575 417 1571 439 1551 446 Z",
+    "M 1590 439 L 1620 428 1651 439 1675 465 1660 486 1628 489 1601 469 Z",
+    "M 1685 510 L 1728 490 1775 500 1812 526 1831 559 1810 594 1773 606 1735 592 1705 570 1680 540 Z",
+    "M 1860 645 L 1880 652 1890 680 1875 700 1857 680 Z",
+    "M 1900 720 L 1924 714 1944 734 1938 758 1916 766 1899 746 Z"
   ];
-  for(const poly of continents){x.beginPath();poly.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.closePath();x.fill();x.stroke();}
-  // Lignes de latitude très discrètes.
-  x.strokeStyle='#ffffff35';x.lineWidth=1;
-  for(let y=64;y<512;y+=64){x.beginPath();x.moveTo(0,y);x.lineTo(1024,y);x.stroke();}
+  const coast=new Path2D();
+  landPaths.forEach(path=>coast.addPath(new Path2D(path)));
+  const landGrad=x.createLinearGradient(0,120,0,900);
+  landGrad.addColorStop(0,'#e2e2cf');landGrad.addColorStop(.45,'#cbd7b7');landGrad.addColorStop(1,'#a8bf9e');
+  x.fillStyle=landGrad;x.fill(coast);
+  x.lineWidth=5;x.strokeStyle='#9eb79d';x.stroke(coast);
+  // Soft terrain shading and restrained cloud wisps.
+  x.save();x.clip(coast);
+  for(let j=0;j<18;j++){
+    const px=120+(j*137)%1780,py=90+(j*193)%820;
+    x.beginPath();x.ellipse(px,py,45+(j%4)*17,15+(j%3)*9,(j%5)*.22,0,Math.PI*2);
+    x.fillStyle='rgba(255,255,255,.09)';x.fill();
+  }
+  x.restore();
+  x.fillStyle='rgba(255,255,255,.13)';
+  for(let j=0;j<24;j++){
+    const px=(j*173+80)%2048,py=80+(j*97)%850;
+    x.beginPath();x.ellipse(px,py,45+(j%4)*16,8+(j%3)*5,.12,0,Math.PI*2);x.fill();
+  }
   const tex=new THREE.CanvasTexture(tc);tex.encoding=THREE.sRGBEncoding;tex.needsUpdate=true;
   mat.map=tex;mat.color.set(0xffffff);mat.needsUpdate=true;
-};applyFallback();new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.encoding=THREE.sRGBEncoding;mat.map=t;mat.color.set(0xffffff);mat.needsUpdate=true});globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));halo.scale.setScalar(.88);scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.075;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=2.68;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){
+};applyFallback();new THREE.TextureLoader().load('https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57723/land_ocean_ice_2048.jpg',t=>{t.encoding=THREE.sRGBEncoding;mat.map=t;mat.color.set(0xffffff);mat.needsUpdate=true});globe.add(new THREE.Mesh(new THREE.SphereGeometry(1.008,64,64),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06})));const halo=new THREE.Mesh(new THREE.SphereGeometry(1.04,64,64),new THREE.MeshBasicMaterial({color:0x6dbbff,transparent:true,opacity:.09,side:THREE.BackSide}));halo.scale.setScalar(.88);scene.add(halo);function resizeEarth(){let r=canvas.getBoundingClientRect();renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix()}new ResizeObserver(resizeEarth).observe(canvas);resizeEarth();function tick(now){requestAnimationFrame(tick);let t=(now-start)/1000,p=Math.min(1,t/8);globe.rotation.y=.2+t*.09;globe.rotation.x=-.12+Math.sin(t*.18)*.018;camera.position.z=2.68;renderer.render(scene,camera)}requestAnimationFrame(tick);}catch(e){
   // Repli autonome : globe animé en 2D si Three.js/WebGL est indisponible.
   const ctx=canvas.getContext('2d');
   if(ctx){
