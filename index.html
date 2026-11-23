@@ -1,4 +1,4 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mon Atlas — V55</title>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mon Atlas — V57</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{--navy:#102a40;--ink:#172536;--muted:#667685;--paper:#f5f3ee;--line:#e0e5e8}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,textarea{font:inherit}button{border:0;border-radius:9px;padding:10px 13px;background:#173e5b;color:white;font-weight:600;cursor:pointer}button.secondary{background:#edf1f3;color:var(--ink)}button.danger{background:#fff0ed;color:#8b3022}header{padding:16px 22px;background:var(--navy);color:white;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font:26px Georgia,serif}header small{color:#cfdae1}main{max-width:1200px;margin:auto;padding:18px;display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.panel{background:white;border:1px solid var(--line);border-radius:15px;overflow:hidden;margin-bottom:16px}.head{padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}.head h2{font:22px Georgia,serif;margin:0}.sub,.hint{font-size:12px;color:var(--muted)}#map{height:480px}.form{padding:0 18px 18px;display:grid;gap:11px}label{display:grid;gap:5px;font-size:12px;font-weight:700;color:#536473}input,textarea{width:100%;padding:10px;border:1px solid #d8e0e4;border-radius:9px;background:white;color:var(--ink)}textarea{min-height:75px}.photo-entry{display:flex;flex-direction:column;gap:8px;min-width:0;padding:0 0 12px;border-bottom:1px solid var(--line)}.photo-entry .thumb{width:100%;height:105px;object-fit:cover}.photo-caption-input{width:100%;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:9px;font:inherit;font-size:13px;box-sizing:border-box}.photo-entry small{font-size:11px;color:var(--muted)}.photo-save-status{min-height:14px;color:#28734b}.caption-option{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;margin:0;padding:2px 0}.caption-option input{width:18px;height:18px;margin:0;accent-color:#173e5b}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;flex-wrap:wrap;gap:8px}.list,.timeline{padding:0 18px 16px;display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:space-between;gap:8px}.item strong{display:block}.empty{padding:14px;color:var(--muted);font-size:13px}.thumb{width:68px;height:68px;object-fit:cover;border-radius:8px;margin-right:6px}.timeitem{border-left:2px solid #d6b36a;padding:0 0 13px 13px;margin-left:5px}.intro{height:300px;background:#020813;position:relative;overflow:hidden;display:grid;place-items:center;color:white}#earth{width:100%;height:100%;position:absolute;inset:0}.introcopy{z-index:1;text-align:center;pointer-events:none;text-shadow:0 2px 14px #000}.introcopy h1{font:48px Georgia,serif;margin:0}.introcopy p{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#d8e5ee}.intro button{position:absolute;z-index:2;right:12px;bottom:12px}.note{padding:0 18px 16px}.foot{max-width:1200px;margin:auto;padding:0 18px 24px;font-size:12px;color:var(--muted)}
@@ -329,6 +329,29 @@ body:has(#screen-home.active) .topbar{display:none!important}
  .earth-wrap{width:min(40vw,54vh,560px)!important;height:min(40vw,54vh,560px)!important}
 }
 
+
+/* V57 — Atlas cartographique immersif, inspiré de la maquette fournie */
+.atlas-app-head{display:flex;align-items:center;justify-content:space-between;padding:2px 7px 13px;color:#fff}
+.atlas-app-title{display:flex;align-items:center;gap:13px}.atlas-app-title h1{margin:0;font-size:27px;letter-spacing:-.5px;color:#fff}
+.atlas-globe-icon{width:38px;height:38px;border:2px solid #e8f6ff;border-radius:50%;display:grid;place-items:center;font-size:31px;line-height:1;color:#e8f6ff}
+.atlas-search-toggle{width:42px;height:42px;padding:8px;border-radius:50%;background:transparent;color:#fff}.atlas-search-toggle svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.atlas-search-wrap{padding:0 4px 12px}.atlas-search-wrap input{border-radius:22px;padding:11px 15px;border:1px solid #d6e7f0;background:#fff}
+.atlas-map-switch{position:relative;z-index:500;margin:0 auto -1px;width:min(100%,330px);display:flex;padding:4px;border-radius:28px;background:#fff;box-shadow:0 3px 14px #06243b35}
+.atlas-map-switch button{flex:1;border-radius:24px;background:transparent;color:#17354c;padding:10px 14px;font-size:14px}
+.atlas-map-switch button.selected{background:linear-gradient(135deg,#168dc7,#07528d);color:white;box-shadow:0 2px 7px #064a7d38}
+.atlas-map-panel{position:relative;border:0!important;border-radius:0!important;padding:0!important;overflow:hidden!important;margin:0 -18px 18px!important;background:#b9d9e9;box-shadow:none!important}
+#map{height:min(66vh,650px);min-height:430px;border-radius:0!important;background:#b8d8e8}
+.leaflet-control-attribution{font-size:8px!important;background:#ffffffb8!important}
+.atlas-zoom{position:absolute;z-index:600;right:17px;bottom:112px;display:grid;gap:9px}
+.atlas-zoom button{width:43px;height:43px;padding:0;border-radius:50%;background:#fff;color:#153b58;box-shadow:0 3px 12px #082c4738;font-size:27px;font-weight:500;line-height:1}
+.atlas-map-count{position:absolute;z-index:600;bottom:17px;left:50%;transform:translateX(-50%);min-width:205px;display:flex;align-items:center;justify-content:center;gap:9px;padding:9px 19px;border-radius:28px;background:#fffffff2;color:#15354c;box-shadow:0 4px 16px #092e4938;white-space:nowrap}
+.atlas-count-globe{font-size:26px;color:#286d9b}.atlas-map-count strong{font-size:21px;line-height:1}.atlas-map-count span:last-child{font-size:12px;font-weight:650}
+.atlas-pin-wrap{background:transparent;border:0}.atlas-pin{display:block;position:relative;width:27px;height:27px;border:4px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#075b9d;box-shadow:0 2px 7px #001d36a8}.atlas-pin i{position:absolute;inset:6px;border-radius:50%;background:#fff}
+#screen-atlas{margin:-14px -18px 0;padding:12px 18px 0;border-radius:0;background:linear-gradient(180deg,#062b4a 0,#0b4a75 38%,#eef7fc 38.1%,#eef7fc 100%);min-height:calc(100vh - 170px)}
+#screen-atlas .atlas-lower{padding:0 18px}
+#screen-atlas .atlas-lower .panel{border-radius:16px}
+@media(max-width:760px){#screen-atlas{margin:-14px -12px 0;padding:12px 12px 0}#map{height: min(66vh,610px);min-height:430px}.atlas-map-panel{margin:0 -12px 16px!important}.atlas-zoom{right:15px;bottom:105px}.atlas-map-count{bottom:15px}.atlas-app-title h1{font-size:26px}}
+
 </style>
 <style id="v50-home-layout">
 #screen-home{padding:0!important}
@@ -399,8 +422,10 @@ body:has(#screen-home.active) .topbar{display:none!important}
   </div>
 </section>
 <section class="screen" id="screen-atlas">
-  <div class="page-heading"><div><h1>Mon Atlas</h1><p>Explorez le monde et retrouvez vos lieux.</p></div><button id="world" class="secondary">Vue monde</button></div>
-  <section class="panel map-panel"><div id="map"></div></section>
+  <div class="atlas-app-head"><div class="atlas-app-title"><span class="atlas-globe-icon">◎</span><h1>Atlas</h1></div><button type="button" id="atlas-search-toggle" class="atlas-search-toggle" aria-label="Rechercher un lieu"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7.2"/><path d="m16.2 16.2 5 5"/></svg></button></div>
+  <div id="atlas-search-wrap" class="atlas-search-wrap" hidden><input id="atlas-search" type="search" placeholder="Rechercher un lieu ou un pays…" aria-label="Rechercher dans les lieux enregistrés"></div>
+  <div class="atlas-map-switch" role="group" aria-label="Filtrer la carte"><button type="button" id="atlas-mode-world" class="selected">Monde</button><button type="button" id="atlas-mode-visited">Pays visités</button></div>
+  <section class="panel map-panel atlas-map-panel"><div id="map"></div><div class="atlas-zoom"><button type="button" id="atlas-zoom-in" aria-label="Zoom avant">+</button><button type="button" id="atlas-zoom-out" aria-label="Zoom arrière">−</button></div><div class="atlas-map-count"><span class="atlas-count-globe">◎</span><strong id="atlas-country-count">0</strong><span>Pays visités</span></div></section>
   <div class="atlas-lower">
     <section class="panel"><div class="section-heading"><div><h2>Mes lieux</h2><p id="count">0 souvenir</p></div><button id="new">+ Nouveau lieu</button></div><div id="places" class="list"></div></section>
     <section class="panel"><div class="section-heading"><div><h2 id="formtitle">Un souvenir de voyage</h2><p>Lieu, date, notes et photos.</p></div></div>
@@ -418,7 +443,15 @@ body:has(#screen-home.active) .topbar{display:none!important}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
 <script>
 (()=>{const $=x=>document.getElementById(x),key='monAtlasPrototype_v1';let data=[],edit=null,coords=null,photos=[],photoCaptions=[],photoCaptionVisible=[],draftPin=null;try{data=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
-const map=L.map('map').setView([25,5],2);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:22,attribution:'© OpenStreetMap contributors'}).addTo(map);const pins=L.layerGroup().addTo(map);
+const map=L.map('map',{zoomControl:false,scrollWheelZoom:true}).setView([25,5],2);L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles © Esri'}).addTo(map);const pins=L.layerGroup().addTo(map);
+let atlasMode='world';
+function visitedCountries(){return [...new Set(data.map(p=>(p.country||'').trim()).filter(Boolean).map(x=>x.toLocaleLowerCase('fr')))]}
+function updateAtlasCount(){const n=visitedCountries().length;const el=$('atlas-country-count');if(el)el.textContent=n;}
+function setAtlasMode(mode){atlasMode=mode;$('atlas-mode-world').classList.toggle('selected',mode==='world');$('atlas-mode-visited').classList.toggle('selected',mode==='visited');if(mode==='world'){map.setView([25,5],2)}else{const pts=data.filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng)));if(pts.length){const bounds=L.latLngBounds(pts.map(p=>[Number(p.lat),Number(p.lng)]));map.fitBounds(bounds.pad(.28),{maxZoom:5})}else{map.setView([25,5],2)}}}
+$('atlas-mode-world').onclick=()=>setAtlasMode('world');$('atlas-mode-visited').onclick=()=>setAtlasMode('visited');
+$('atlas-zoom-in').onclick=()=>map.zoomIn();$('atlas-zoom-out').onclick=()=>map.zoomOut();
+$('atlas-search-toggle').onclick=()=>{const w=$('atlas-search-wrap');w.hidden=!w.hidden;if(!w.hidden)$('atlas-search').focus()};
+$('atlas-search').oninput=()=>{const q=$('atlas-search').value.trim().toLocaleLowerCase('fr');document.querySelectorAll('#places [data-row]').forEach(row=>{row.hidden=!!q&&!row.textContent.toLocaleLowerCase('fr').includes(q)});};
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function save(){try{localStorage.setItem(key,JSON.stringify(data));return true}catch(e){alert('Espace local insuffisant. Essayez avec moins de photos.');return false}}
 
@@ -469,7 +502,7 @@ function renderNewScreens(){
  const cities=[];data.forEach(p=>{const k=normCountry(p.name);if(cityInfo[k]&&!cities.some(x=>x.k===k))cities.push({k,p,info:cityInfo[k]})});
  $('passport-city-count').textContent=cities.length;$('city-stamps').innerHTML=cities.length?cities.map(c=>'<div class="city-stamp"><span style="font-size:30px">'+c.info[2]+'</span><div><b>'+esc(c.p.name)+'</b><small>'+c.info[0]+' '+c.info[1]+' · '+esc(c.p.date||'Date inconnue')+'</small></div></div>').join(''):'<div class="empty">Les visas des grandes villes reconnues apparaîtront ici.</div>';
 }
-function render(){pins.clearLayers();data.forEach(p=>{const m=L.marker([p.lat,p.lng]).addTo(pins).bindPopup('<b>'+esc(p.name)+'</b><br>'+esc(p.country)+' '+esc(p.date));m.on('click',()=>load(p.id))});$('count').textContent=data.length+' souvenir'+(data.length>1?'s':'');$('places').innerHTML=data.length?data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>'<div class="swipe-row" data-row="'+p.id+'"><button class="swipe-delete" type="button" aria-label="Supprimer '+esc(p.name)+'" data-delete="'+p.id+'">🗑<br>Supprimer</button><div class="swipe-card" data-card="'+p.id+'"><div class="swipe-main"><strong>'+esc(p.name)+'</strong><div class="sub">'+esc(p.country||'Lieu non précisé')+' · '+esc(p.date||'Date inconnue')+'</div></div><button class="secondary" data-id="'+p.id+'">Ouvrir</button></div></div>').join(''):'<div class="empty">Cliquez sur la carte pour ajouter votre premier souvenir.</div>';
+function render(){pins.clearLayers();data.forEach(p=>{const pin=L.divIcon({className:'atlas-pin-wrap',html:'<span class="atlas-pin"><i></i></span>',iconSize:[30,38],iconAnchor:[15,36]});const m=L.marker([p.lat,p.lng],{icon:pin}).addTo(pins).bindPopup('<b>'+esc(p.name)+'</b><br>'+esc(p.country)+' '+esc(p.date));m.on('click',()=>load(p.id))});updateAtlasCount();$('count').textContent=data.length+' souvenir'+(data.length>1?'s':'');$('places').innerHTML=data.length?data.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(p=>'<div class="swipe-row" data-row="'+p.id+'"><button class="swipe-delete" type="button" aria-label="Supprimer '+esc(p.name)+'" data-delete="'+p.id+'">🗑<br>Supprimer</button><div class="swipe-card" data-card="'+p.id+'"><div class="swipe-main"><strong>'+esc(p.name)+'</strong><div class="sub">'+esc(p.country||'Lieu non précisé')+' · '+esc(p.date||'Date inconnue')+'</div></div><button class="secondary" data-id="'+p.id+'">Ouvrir</button></div></div>').join(''):'<div class="empty">Cliquez sur la carte pour ajouter votre premier souvenir.</div>';
 document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>load(b.dataset.id));
 document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{
  const id=b.dataset.delete,p=data.find(x=>x.id===id);if(!p)return;
